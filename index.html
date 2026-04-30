@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hyperline — Billing infrastructure that scales with you</title>
+  <meta name="description" content="Hyperline is the billing platform built for SaaS companies. Launch usage-based pricing, automate revenue collection, and scale without engineering overhead." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #16A34A;
+      --green-light: #22C55E;
+      --green-dim: #15803D;
+      --green-bg: #F0FDF4;
+      --green-border: #BBF7D0;
+      --dark: #0A0F1E;
+      --dark-2: #111827;
+      --dark-3: #1F2937;
+      --muted: #6B7280;
+      --muted-2: #9CA3AF;
+      --border: #E5E7EB;
+      --white: #FFFFFF;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --shadow: 0 4px 24px rgba(0,0,0,.08);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #FAFAFA;
+      color: var(--dark);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--dark);
+      flex-shrink: 0;
+    }
+
+    .logo-dot {
+      width: 28px;
+      height: 28px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-dot svg {
+      width: 14px;
+      height: 14px;
+      fill: white;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 500;
+      transition: color .15s;
+    }
+
+    .nav-links a:hover { color: var(--dark); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .15s;
+      border: none;
+      white-space: nowrap;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover { color: var(--dark); background: var(--border); }
+
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--green-dim); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,163,74,.3); }
+
+    .btn-outline {
+      background: white;
+      color: var(--dark);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover { border-color: var(--green); color: var(--green); }
+
+    .btn-lg {
+      padding: 14px 28px;
+      font-size: 1rem;
+      border-radius: 10px;
+    }
+
+    .btn-xl {
+      padding: 16px 36px;
+      font-size: 1.05rem;
+      border-radius: 12px;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--dark);
+      border-radius: 2px;
+      transition: all .2s;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      color: var(--green-dim);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .hero-badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -.03em;
+      color: var(--dark);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 480px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 28px;
+      font-size: .82rem;
+      color: var(--muted-2);
+    }
+
+    .hero-avatars {
+      display: flex;
+    }
+
+    .hero-avatars span {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid white;
+      margin-right: -8px;
+      font-size: .65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    /* ── DASHBOARD MOCKUP ── */
+    .dashboard {
+      background: var(--dark-2);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,.06);
+      position: relative;
+    }
+
+    .dashboard::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: calc(var(--radius-lg) + 2px);
+      background: linear-gradient(135deg, rgba(22,163,74,.3), rgba(22,163,74,.05) 60%, transparent);
+      z-index: -1;
+    }
+
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .dash-dots { display: flex; gap: 6px; }
+    .dash-dots span {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .dash-dots span:nth-child(1) { background: #FF5F57; }
+    .dash-dots span:nth-child(2) { background: #FEBC2E; }
+    .dash-dots span:nth-child(3) { background: #28C840; }
+
+    .dash-title {
+      font-size: .75rem;
+      color: #6B7280;
+      font-weight: 500;
+    }
+
+    .dash-kpi-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      background: var(--dark-3);
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .kpi-label {
+      font-size: .7rem;
+      color: #6B7280;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -.02em;
+    }
+
+    .kpi-value.green { color: var(--green-light); }
+
+    .kpi-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--green-light);
+      margin-top: 4px;
+    }
+
+    .kpi-delta::before { content: '↑'; }
+
+    .dash-chart-label {
+      font-size: .72rem;
+      color: #6B7280;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+
+    .bar {
+      flex: 1;
+      border-radius: 4px 4px 0 0;
+      background: rgba(22,163,74,.25);
+      position: relative;
+      transition: background .2s;
+    }
+
+    .bar.active { background: var(--green); }
+    .bar.semi { background: rgba(22,163,74,.55); }
+
+    .dash-table {
+      background: var(--dark-3);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.05);
+    }
+
+    .dash-table-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+
+    .dash-table-row:last-child { border-bottom: none; }
+
+    .dash-table-name {
+      font-size: .75rem;
+      color: #D1D5DB;
+      font-weight: 500;
+    }
+
+    .dash-table-amt {
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--green-light);
+    }
+
+    .dash-table-status {
+      font-size: .65rem;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+
+    .status-paid {
+      background: rgba(22,163,74,.2);
+      color: var(--green-light);
+    }
+
+    .status-pending {
+      background: rgba(251,191,36,.15);
+      color: #FCD34D;
+    }
+
+    /* ── LOGOS STRIP ── */
+    .logos-strip {
+      background: white;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 24px;
+    }
+
+    .logos-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .logos-label {
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted-2);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .logos-grid {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .logo-mark {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #D1D5DB;
+      letter-spacing: -.02em;
+      white-space: nowrap;
+    }
+
+    /* ── STATS ── */
+    .stats {
+      background: var(--dark);
+      padding: 72px 24px;
+    }
+
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 48px;
+      text-align: center;
+    }
+
+    .stat-item {}
+
+    .stat-value {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 900;
+      color: white;
+      letter-spacing: -.04em;
+      margin-bottom: 6px;
+    }
+
+    .stat-value span { color: var(--green-light); }
+
+    .stat-label {
+      font-size: .9rem;
+      color: #6B7280;
+      font-weight: 500;
+    }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 96px 24px; }
+
+    .section-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+
+    .section-tag::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 2px;
+      background: var(--green);
+      border-radius: 2px;
+    }
+
+    .section-title {
+      font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: var(--dark);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features { background: white; }
+
+    .features-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
+      margin-bottom: 56px;
+      flex-wrap: wrap;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: #FAFAFA;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--green);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .25s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--green-border);
+      box-shadow: 0 8px 32px rgba(22,163,74,.08);
+      transform: translateY(-2px);
+    }
+
+    .feature-card:hover::after { transform: scaleX(1); }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--green-bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 1.4rem;
+    }
+
+    .feature-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 10px;
+      letter-spacing: -.01em;
+    }
+
+    .feature-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how { background: var(--dark); }
+
+    .how .section-title { color: white; }
+    .how .section-subtitle { color: #6B7280; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 56px;
+      position: relative;
+    }
+
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.666% + 16px);
+      right: calc(16.666% + 16px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--green) 0%, var(--green) 100%);
+      opacity: .25;
+    }
+
+    .step-card {
+      text-align: center;
+      padding: 40px 28px;
+      background: var(--dark-3);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,.06);
+      position: relative;
+    }
+
+    .step-number {
+      width: 56px;
+      height: 56px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: white;
+      margin: 0 auto 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+      letter-spacing: -.01em;
+    }
+
+    .step-desc {
+      font-size: .9rem;
+      color: #9CA3AF;
+      line-height: 1.65;
+    }
+
+    .step-pill {
+      display: inline-block;
+      margin-top: 16px;
+      background: rgba(22,163,74,.15);
+      border: 1px solid rgba(22,163,74,.3);
+      color: var(--green-light);
+      font-size: .75rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 100px;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { background: var(--green-bg); }
+
+    .testimonials-head { margin-bottom: 48px; }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .testimonial-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      border: 1px solid var(--green-border);
+      box-shadow: 0 2px 12px rgba(22,163,74,.06);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .testimonial-stars {
+      display: flex;
+      gap: 3px;
+      font-size: 1rem;
+      color: var(--green);
+    }
+
+    .testimonial-quote {
+      font-size: .95rem;
+      color: var(--dark-3);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    .testimonial-quote::before {
+      content: '\201C';
+      font-size: 1.8rem;
+      color: var(--green);
+      line-height: 0;
+      vertical-align: -.4em;
+      margin-right: 4px;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .author-name {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .author-role {
+      font-size: .8rem;
+      color: var(--muted-2);
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: var(--dark);
+      text-align: center;
+      padding: 120px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(22,163,74,.18) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-inner .section-tag { justify-content: center; }
+    .cta-inner .section-tag::before { display: none; }
+
+    .cta-title {
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      color: white;
+      line-height: 1.08;
+      margin-bottom: 20px;
+    }
+
+    .cta-title em {
+      font-style: normal;
+      color: var(--green-light);
+    }
+
+    .cta-desc {
+      font-size: 1.1rem;
+      color: #9CA3AF;
+      margin-bottom: 40px;
+      line-height: 1.65;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cta-note {
+      margin-top: 20px;
+      font-size: .82rem;
+      color: #6B7280;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark-2);
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 64px 24px 36px;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand .logo { color: white; margin-bottom: 16px; display: inline-flex; }
+
+    .footer-brand p {
+      font-size: .88rem;
+      color: #6B7280;
+      line-height: 1.65;
+      max-width: 240px;
+      margin-bottom: 20px;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 8px;
+    }
+
+    .social-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9CA3AF;
+      text-decoration: none;
+      font-size: .8rem;
+      font-weight: 700;
+      transition: all .15s;
+    }
+
+    .social-btn:hover { background: var(--green); color: white; border-color: var(--green); }
+
+    .footer-col h4 {
+      font-size: .82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #9CA3AF;
+      margin-bottom: 16px;
+    }
+
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+    .footer-col a {
+      font-size: .88rem;
+      color: #6B7280;
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .footer-col a:hover { color: var(--green-light); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.05);
+      padding-top: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-bottom p {
+      font-size: .82rem;
+      color: #4B5563;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-bottom-links a {
+      font-size: .82rem;
+      color: #4B5563;
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .footer-bottom-links a:hover { color: var(--green-light); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .footer-top { grid-template-columns: 1fr 1fr 1fr; }
+      .footer-brand { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: 48px; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid::before { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .features-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .hero { padding: 48px 24px 40px; }
+      section { padding: 64px 24px; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .dash-kpi-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-dot">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      Hyperline
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#testimonials">Customers</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#">Docs</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <a href="#" class="btn btn-ghost">Log in</a>
+      <a href="#" class="btn btn-primary">Get started free</a>
+    </div>
+
+    <button class="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Now in GA — zero downtime migrations
+    </div>
+    <h1>
+      Billing that<br><em>scales with</em><br>your ambition
+    </h1>
+    <p class="hero-desc">
+      Launch usage-based pricing, automate revenue collection, and handle complex billing logic — without a single line of custom code.
+    </p>
+    <div class="hero-ctas">
+      <a href="#" class="btn btn-primary btn-lg">Start for free →</a>
+      <a href="#" class="btn btn-outline btn-lg">See a demo</a>
+    </div>
+    <div class="hero-trust">
+      <div class="hero-avatars">
+        <span style="background:#7C3AED;">MG</span>
+        <span style="background:#DB2777;">SA</span>
+        <span style="background:#0284C7;">TL</span>
+        <span style="background:#D97706;">JR</span>
+      </div>
+      <span>Trusted by 500+ SaaS companies in Europe</span>
+    </div>
+  </div>
+
+  <!-- Dashboard Mockup -->
+  <div class="dashboard" role="img" aria-label="Hyperline dashboard showing MRR of €42k">
+    <div class="dash-header">
+      <div class="dash-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="dash-title">hyperline.co · Revenue Dashboard</div>
+      <div></div>
+    </div>
+
+    <div class="dash-kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">MRR</div>
+        <div class="kpi-value green">€42k</div>
+        <div class="kpi-delta">12.4% vs last month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active subs</div>
+        <div class="kpi-value">347</div>
+        <div class="kpi-delta">8 new today</div>
+      </div>
+    </div>
+
+    <div class="dash-chart-label">MRR Growth — last 12 months</div>
+    <div class="bar-chart" role="img" aria-label="Bar chart showing MRR growth over 12 months">
+      <div class="bar" style="height:35%"></div>
+      <div class="bar" style="height:42%"></div>
+      <div class="bar" style="height:38%"></div>
+      <div class="bar" style="height:55%"></div>
+      <div class="bar semi" style="height:50%"></div>
+      <div class="bar semi" style="height:63%"></div>
+      <div class="bar semi" style="height:70%"></div>
+      <div class="bar semi" style="height:75%"></div>
+      <div class="bar" style="height:68%"></div>
+      <div class="bar" style="height:82%"></div>
+      <div class="bar semi" style="height:90%"></div>
+      <div class="bar active" style="height:100%"></div>
+    </div>
+
+    <div class="dash-table">
+      <div class="dash-table-row">
+        <span class="dash-table-name">Notion SaaS</span>
+        <span class="dash-table-amt">€4,200</span>
+        <span class="dash-table-status status-paid">Paid</span>
+      </div>
+      <div class="dash-table-row">
+        <span class="dash-table-name">Datadog EU</span>
+        <span class="dash-table-amt">€7,800</span>
+        <span class="dash-table-status status-paid">Paid</span>
+      </div>
+      <div class="dash-table-row">
+        <span class="dash-table-name">Segment Pro</span>
+        <span class="dash-table-amt">€2,100</span>
+        <span class="dash-table-status status-pending">Pending</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOS STRIP -->
+<div class="logos-strip">
+  <div class="logos-inner">
+    <p class="logos-label">Powering revenue for fast-growing companies</p>
+    <div class="logos-grid">
+      <span class="logo-mark">Mistral AI</span>
+      <span class="logo-mark">Pennylane</span>
+      <span class="logo-mark">Qonto</span>
+      <span class="logo-mark">Alan</span>
+      <span class="logo-mark">Spendesk</span>
+      <span class="logo-mark">Doctrine</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-value">€<span>2B</span>+</div>
+      <div class="stat-label">Revenue processed</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value"><span>500</span>+</div>
+      <div class="stat-label">Companies scaled</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value"><span>10</span>min</div>
+      <div class="stat-label">To first invoice</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value"><span>0</span></div>
+      <div class="stat-label">Lines of code needed</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES GRID -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="features-head">
+      <div>
+        <div class="section-tag">Everything you need</div>
+        <h2 class="section-title">One platform.<br>All your billing needs.</h2>
+      </div>
+      <p class="section-subtitle">
+        From flat-rate subscriptions to per-seat and usage-based pricing — Hyperline handles the complexity so your team doesn't have to.
+      </p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title">Usage-Based Pricing</h3>
+        <p class="feature-desc">Ingest events in real-time, define meters, and bill customers accurately based on what they actually consume. No approximations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3 class="feature-title">Automated Dunning</h3>
+        <p class="feature-desc">Smart retry logic and customizable dunning sequences recover failed payments automatically, reducing involuntary churn by up to 40%.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧾</div>
+        <h3 class="feature-title">Compliant Invoicing</h3>
+        <p class="feature-desc">EU-compliant invoices generated automatically with multi-currency support, VAT handling, and e-invoicing for all major markets.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Revenue Analytics</h3>
+        <p class="feature-desc">MRR, ARR, churn, LTV, and cohort analysis in a single dashboard. Connect to your BI tools or use ours.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔌</div>
+        <h3 class="feature-title">Native Integrations</h3>
+        <p class="feature-desc">Sync with Salesforce, HubSpot, Stripe, NetSuite, and 60+ tools in one click. Or use our REST API for custom workflows.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3 class="feature-title">Enterprise Security</h3>
+        <p class="feature-desc">SOC 2 Type II, GDPR-compliant, and hosted in Europe. Role-based access, audit logs, and SSO included on all plans.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-inner">
+    <div class="section-tag">Simple by design</div>
+    <h2 class="section-title">Up and running in minutes,<br>not months</h2>
+    <p class="section-subtitle" style="color:#9CA3AF;">
+      Three steps from sign-up to your first automated invoice. No engineering sprint required.
+    </p>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="step-title">Connect your stack</h3>
+        <p class="step-desc">Link your payment provider, CRM, and data sources in minutes using our pre-built connectors. No custom code, no waiting.</p>
+        <span class="step-pill">5 minute setup</span>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="step-title">Define your pricing</h3>
+        <p class="step-desc">Build any pricing model visually — flat, usage-based, hybrid, or tiered. Apply it to customer segments or individual accounts.</p>
+        <span class="step-pill">No code required</span>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="step-title">Watch revenue flow</h3>
+        <p class="step-desc">Invoices go out automatically, payments get collected, revenue syncs to your accounting. You focus on growing, Hyperline handles the rest.</p>
+        <span class="step-pill">100% automated</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+  <div class="section-inner">
+    <div class="testimonials-head">
+      <div class="section-tag">Customer stories</div>
+      <h2 class="section-title">Loved by finance<br>and engineering teams</h2>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">
+          We went from a billing nightmare — custom code, manual invoices, missed payments — to fully automated in two weeks. Hyperline paid for itself in the first month.
+        </p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:#7C3AED;">MG</div>
+          <div>
+            <div class="author-name">Marie Gautier</div>
+            <div class="author-role">CFO · Doctrine</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">
+          Usage-based billing used to mean a 3-month engineering project. With Hyperline we shipped our new pricing model in a single sprint. Our engineers were honestly shocked.
+        </p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:#0284C7;">TL</div>
+          <div>
+            <div class="author-name">Thomas Leroy</div>
+            <div class="author-role">CTO · Pennylane</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">
+          The dunning automation alone recovered €180k in the first quarter. Hyperline is not just a billing tool, it's a genuine revenue growth lever for us.
+        </p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:#DB2777;">SA</div>
+          <div>
+            <div class="author-name">Sophie Arnaud</div>
+            <div class="author-role">Head of Revenue · Alan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="section-tag">Ready to ship?</div>
+    <h2 class="cta-title">Stop patching.<br><em>Start scaling.</em></h2>
+    <p class="cta-desc">
+      Join 500+ SaaS companies who replaced their billing patchwork with Hyperline. Set up in 10 minutes, no engineering required.
+    </p>
+    <div class="cta-buttons">
+      <a href="#" class="btn btn-primary btn-xl">Get started for free →</a>
+      <a href="#" class="btn btn-outline btn-xl" style="border-color:rgba(255,255,255,.15);color:#D1D5DB;">Book a demo</a>
+    </div>
+    <p class="cta-note">Free 14-day trial · No credit card · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <div class="logo-dot">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          Hyperline
+        </a>
+        <p>The billing platform built for ambitious SaaS companies. Scale revenue without scaling complexity.</p>
+        <div class="footer-social">
+          <a href="#" class="social-btn" aria-label="Twitter/X">𝕏</a>
+          <a href="#" class="social-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-btn" aria-label="GitHub">GH</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#">Subscriptions</a></li>
+          <li><a href="#">Usage billing</a></li>
+          <li><a href="#">Invoicing</a></li>
+          <li><a href="#">Dunning</a></li>
+          <li><a href="#">Analytics</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Integrations</h4>
+        <ul>
+          <li><a href="#">Stripe</a></li>
+          <li><a href="#">Salesforce</a></li>
+          <li><a href="#">HubSpot</a></li>
+          <li><a href="#">NetSuite</a></li>
+          <li><a href="#">All integrations</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">API Reference</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">Status</a></li>
+          <li><a href="#">Support</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2024 Hyperline SAS. All rights reserved. Made in Paris 🇫🇷</p>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Security</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
